@@ -1,12 +1,3 @@
-/**
- * Makes a single API request to retrieve the user's IP address.
- * Input:
- *   - A callback (to pass back an error or the IP string)
- * Returns (via Callback):
- *   - An error, if any (nullable)
- *   - The IP address as a string (null if error). Example: "162.245.144.188"
- */
-
 const needle = require('needle');
 
 const fetchMyIP = function(callback) {
@@ -24,14 +15,29 @@ const fetchMyIP = function(callback) {
       return;
     }
 
-    const data = body;
-
-    if (data) {
-      callback(null, data.ip);
+    if (body) {
+      callback(null, body.ip);
     } else {
       callback('IP not found', null);
     }
   });
 };
 
-module.exports = { fetchMyIP };
+const fetchCoordsByIP = (ip, callback) => {
+  const url = `http://ipwho.is/${ip}`;
+  needle.get(url, (error, response, body) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    if(body.success === false) {
+      callback("Coordinates not found", null);
+    }
+
+    const latitude = body.latitude;
+    const longitude = body.longitude
+    callback(null, {latitude, longitude});
+  });
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
